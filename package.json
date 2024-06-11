@@ -1,0 +1,22 @@
+{
+  "name": "projectcople",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx playwright test --trace on",
+    "test:debug": "npx playwright test --trace on --debug",
+    "ts:check": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.41.2",
+    "@types/node": "^20.11.16"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.1",
+    "date-fns": "^2.29.3"
+  }
+}

@@ -11,30 +11,50 @@ let from = format(addDays(new Date(), 1), "EEE MMM dd, yyy"); //Fri Jun 19, 2024
 let to = format(addDays(new Date(), 7), "EEE MMM dd, yyy"); //Fri Jun 19, 2024
 
 // npx playwright codegen https://flyflair.com/
-test("Search for a round trip flight with valid details", async ({ page }) => {
+test("Search for a round trip flight with valid details", async ({
+  context,
+  page,
+}) => {
   await page.goto("/");
   await page.getByRole("button", { name: "english" }).click();
+  // from Toronto YYZ
   await page.getByPlaceholder("from").click();
   await page.getByPlaceholder("from").fill("yyz");
   await page.getByText("torontoyyz").click();
+  // to Calgary YYC
   await page.getByPlaceholder("to").click();
   await page.getByPlaceholder("to").fill("yyc");
   await page.getByText("calgaryyyc").click();
+  // select departure date
   page.getByText("departure date", { exact: true });
-  // let calendar = page.getByRole("gridcell");
   await page.getByLabel(from).click();
-  // await getFrom.click();
-
+  // select return date
   page.getByText("return date", { exact: true });
   await page.getByLabel(to).click();
-
   await page.getByRole("button", { name: "done" }).click();
   await page.getByRole("button", { name: "search flights" }).click();
 
-  // await expect(page.getByTestId(from)).toBeVisible();
-  await expect(page.getByText("choose departing flight")).toBeVisible();
-  await expect(page.locator(`text=${from}`)).toBeVisible();
+  // close any adtional web page popup if any
+  const [newpage] = await Promise.all([
+    context.waitForEvent("page"),
+    page.waitForEvent("popup"),
+  ]);
+  await page.close();
+  await newpage.bringToFront();
 
-  await expect(page.getByText("choose return flight")).toBeVisible();
-  await expect(page.locator(`text=${to}`)).toBeVisible();
+  // Validate information of the seach results
+  await newpage.waitForLoadState("load");
+  await expect(newpage).toHaveURL("/booking/select");
+
+  await expect(
+    newpage.getByRole("heading", { name: "choose departing flight" })
+  ).toBeVisible();
+  // await expect(newpage.locator(`text=${from}`)).toBeVisible();
+  expect(newpage.getByText("toronto (YYZ)calgary (YYC)"));
+
+  await expect(
+    newpage.getByRole("heading", { name: "choose return flight" })
+  ).toBeVisible();
+  // await expect(newpage.locator(`text=${to}`)).toBeVisible();
+  expect(newpage.getByText("calgary (YYC)toronto (YYZ)"));
 });

@@ -34,27 +34,34 @@ test("Search for a round trip flight with valid details", async ({
   await page.getByRole("button", { name: "done" }).click();
   await page.getByRole("button", { name: "search flights" }).click();
 
-  // close any adtional web page popup if any
-  const [newpage] = await Promise.all([
-    context.waitForEvent("page"),
-    page.waitForEvent("popup"),
-  ]);
-  await page.close();
-  await newpage.bringToFront();
+  // Wait for the new page and keep navigating on the main flair page
+  const flairPagePromise = page.waitForEvent("popup");
+  const flairPage = await flairPagePromise;
 
-  // Validate information of the seach results
-  await newpage.waitForLoadState("load");
-  await expect(newpage).toHaveURL("/booking/select");
+  // Validate result from search
+  await flairPage.waitForLoadState("load");
+  // Confirm the URL is correct
+  await expect(flairPage).toHaveURL("/booking/select");
 
+  // Validate departing flight details
   await expect(
-    newpage.getByRole("heading", { name: "choose departing flight" })
+    flairPage.getByRole("heading", { name: "choose departing flight" })
   ).toBeVisible();
-  // await expect(newpage.locator(`text=${from}`)).toBeVisible();
-  expect(newpage.getByText("toronto (YYZ)calgary (YYC)"));
 
+  await expect(flairPage.getByText("toronto (YYZ)calgary (YYC)")).toBeVisible();
+
+  let formatFrom = new Date(from).toLocaleDateString("en-US"); // "6/19/2024"
+  let validateFrom = `date-${formatFrom}`;
+  await expect(flairPage.getByTestId(validateFrom)).toBeVisible();
+
+  // Validate return flight details
   await expect(
-    newpage.getByRole("heading", { name: "choose return flight" })
+    flairPage.getByRole("heading", { name: "choose return flight" })
   ).toBeVisible();
-  // await expect(newpage.locator(`text=${to}`)).toBeVisible();
-  expect(newpage.getByText("calgary (YYC)toronto (YYZ)"));
+
+  await expect(flairPage.getByText("calgary (YYC)toronto (YYZ)")).toBeVisible();
+
+  let formatTo = new Date(to).toLocaleDateString("en-US");
+  let validateTo = `date-${formatTo}`;
+  await expect(flairPage.getByTestId(validateTo)).toBeVisible();
 });

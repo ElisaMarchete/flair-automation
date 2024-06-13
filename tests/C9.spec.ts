@@ -10,21 +10,25 @@ let day = format(today, "dd");
 let from = format(addDays(new Date(), 1), "EEE MMM dd, yyy"); //Fri Jun 19, 2024
 let to = format(addDays(new Date(), 7), "EEE MMM dd, yyy"); //Fri Jun 19, 2024
 
-// npx playwright codegen https://flyflair.com/
 test("Search for a round trip flight with valid details", async ({
   context,
   page,
 }) => {
+  let departureCity = "toronto";
+  let departureairport = "yyz";
+  let arrivalCity = "calgary";
+  let arrivalairport = "yyc";
+
   await page.goto("/");
   await page.getByRole("button", { name: "english" }).click();
   // from Toronto YYZ
   await page.getByPlaceholder("from").click();
-  await page.getByPlaceholder("from").fill("yyz");
-  await page.getByText("torontoyyz").click();
+  await page.getByPlaceholder("from").fill(departureairport);
+  await page.getByText(`${departureCity}${departureairport}`).click();
   // to Calgary YYC
   await page.getByPlaceholder("to").click();
-  await page.getByPlaceholder("to").fill("yyc");
-  await page.getByText("calgaryyyc").click();
+  await page.getByPlaceholder("to").fill(arrivalairport);
+  await page.getByText(`${arrivalCity}${arrivalairport}`).click();
   // select departure date
   page.getByText("departure date", { exact: true });
   await page.getByLabel(from).click();
@@ -48,6 +52,7 @@ test("Search for a round trip flight with valid details", async ({
     flairPage.getByRole("heading", { name: "choose departing flight" })
   ).toBeVisible();
 
+  /////// Change this with variables
   await expect(flairPage.getByText("toronto (YYZ)calgary (YYC)")).toBeVisible();
 
   let formatFrom = new Date(from).toLocaleDateString("en-US"); // "6/19/2024"
